@@ -10,20 +10,17 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
     
-//    var itemArray = ["Call Kadir", "Buy Onions", "Go to class" ]
-    // creating a new object (defaults) that is from User Defaults which stores key/value pairs in your database persistently across your app.
-    let defaults = UserDefaults.standard
-    
-  
     var itemArray = [Item]() // turning this array into Item() objects that was created in Data Model
+    
+    //creating only a path to the Items.plist - making it a global variable
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist") // b/c it's an array
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view. Render the list from the persisted data in User Defaults
-//
-//        if let items = defaults.array(forKey: "ToDoListArray") as? [String] {
-//            itemArray = items
-//        }
+        
+    print(dataFilePath)
+
         
         // using the Item() object created in the Data Model so that we can assign a property (done/not-done) to each item, to avoid the checkmark from getting reused on a cell arbitrarily. Fixing this bug
         let newItem = Item()
@@ -37,10 +34,10 @@ class TodoListViewController: UITableViewController {
         let newItem3 = Item()
         newItem3.title = "Go to Class"
         itemArray.append(newItem3)
-        
-        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
-            itemArray = items
-        }
+//
+//        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
+//            itemArray = items
+//        }
     }
     
     // MARK - TableView Datasource Methods
@@ -58,7 +55,7 @@ class TodoListViewController: UITableViewController {
         
         cell.accessoryType = item.done ? .checkmark : .none
         
-//
+//  before the refactored code above..it was like this
 //        if item.done == true {
 //            cell.accessoryType = .checkmark
 //        } else {
@@ -74,9 +71,7 @@ class TodoListViewController: UITableViewController {
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        tableView.reloadData() // to show the checkmarks when the item has changed to DONE, forces the tableView to call the method "cellForRowAt" method again.
-      
-
+        saveItems() // saved to the Encoder Items.plist file
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -92,10 +87,8 @@ class TodoListViewController: UITableViewController {
             let newItem = Item()
             newItem.title = textField.text!
             self.itemArray.append(newItem)
-            
-            // user defaults that persist in key value pair are seen in the plist and we pull out that array of objects from "ToDoListArray" 
-            self.defaults.set(self.itemArray, forKey: "ToDoListArray")
-            self.tableView.reloadData()
+            self.saveItems() // saved to the Encoder Items.plist file
+
             
             
         }
@@ -109,6 +102,19 @@ class TodoListViewController: UITableViewController {
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
         
+    }
+    func saveItems() {
+        let encoder = PropertyListEncoder()
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        }
+        catch {
+            print ("Error encoding item array, \(error)")
+        }
+        
+        
+        self.tableView.reloadData()
     }
     
 }
