@@ -23,21 +23,27 @@ class TodoListViewController: UITableViewController {
 
         
         // using the Item() object created in the Data Model so that we can assign a property (done/not-done) to each item, to avoid the checkmark from getting reused on a cell arbitrarily. Fixing this bug
-        let newItem = Item()
-        newItem.title = "Call Kadir"
-        itemArray.append(newItem)
-        
-        let newItem2 = Item()
-        newItem2.title = "Buy Eggs"
-        itemArray.append(newItem2)
-        
-        let newItem3 = Item()
-        newItem3.title = "Go to Class"
-        itemArray.append(newItem3)
+        // hardcoded list of items for testing (1st)
+//        let newItem = Item()
+//        newItem.title = "Call Kadir"
+//        itemArray.append(newItem)
 //
+//        let newItem2 = Item()
+//        newItem2.title = "Buy Eggs"
+//        itemArray.append(newItem2)
+//
+//        let newItem3 = Item()
+//        newItem3.title = "Go to Class"
+//        itemArray.append(newItem3)
+//
+//  this is loading items from User Defaults (2nd)
 //        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
 //            itemArray = items
 //        }
+        
+//   this is loading items from pList (3rd) 
+        loadItems()
+        
     }
     
     // MARK - TableView Datasource Methods
@@ -103,6 +109,9 @@ class TodoListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
         
     }
+    
+    // MARK - Model Manipulation Methods
+    
     func saveItems() {
         let encoder = PropertyListEncoder()
         do {
@@ -117,5 +126,14 @@ class TodoListViewController: UITableViewController {
         self.tableView.reloadData()
     }
     
+    func loadItems() {
+        if let data = try? Data(contentsOf: dataFilePath!){
+            let decoder = PropertyListDecoder()
+            do {
+            itemArray =  try decoder.decode([Item].self, from: data)
+                } catch {
+                print("Error decoding item array , \(error)")
+            }
+        }
+    }
 }
-

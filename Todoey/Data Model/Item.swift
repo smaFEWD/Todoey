@@ -8,7 +8,9 @@
 
 import Foundation
 
-class Item: Encodable, Decodable {
+// Coddable means that this Item class conforms to both the Encodable and Decodable protocols
+
+class Item: Codable {
     var title : String = ""
     var done: Bool = false 
 }
