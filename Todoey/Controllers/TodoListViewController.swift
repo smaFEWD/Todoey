@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
     
@@ -15,34 +16,14 @@ class TodoListViewController: UITableViewController {
     //creating only a path to the Items.plist - making it a global variable
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist") // b/c it's an array
     
+    // need the object of the AppDelegate
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view. Render the list from the persisted data in User Defaults
-        
-    print(dataFilePath)
 
-        
-        // using the Item() object created in the Data Model so that we can assign a property (done/not-done) to each item, to avoid the checkmark from getting reused on a cell arbitrarily. Fixing this bug
-        // hardcoded list of items for testing (1st)
-//        let newItem = Item()
-//        newItem.title = "Call Kadir"
-//        itemArray.append(newItem)
-//
-//        let newItem2 = Item()
-//        newItem2.title = "Buy Eggs"
-//        itemArray.append(newItem2)
-//
-//        let newItem3 = Item()
-//        newItem3.title = "Go to Class"
-//        itemArray.append(newItem3)
-//
-//  this is loading items from User Defaults (2nd)
-//        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
-//            itemArray = items
-//        }
-        
 //   this is loading items from pList (3rd) 
-        loadItems()
+       // loadItems()
         
     }
     
@@ -82,6 +63,7 @@ class TodoListViewController: UITableViewController {
     }
     
     // MARK - Add New Items
+    
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         var textField = UITextField()
         
@@ -90,8 +72,9 @@ class TodoListViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default){(action) in
             // what will happen once the user clicks the Add Item button on our UIAlert
             
-            let newItem = Item()
+            let newItem = Item(context: self.context)
             newItem.title = textField.text!
+            newItem.done = false
             self.itemArray.append(newItem)
             self.saveItems() // saved to the Encoder Items.plist file
 
@@ -111,29 +94,27 @@ class TodoListViewController: UITableViewController {
     }
     
     // MARK - Model Manipulation Methods
-    
+    //no longer using the encoder since we are using CoreData (not saving to a pList)
     func saveItems() {
-        let encoder = PropertyListEncoder()
         do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+        // context is defined as a global variable at the beginning of the file
+           try context.save()
         }
         catch {
-            print ("Error encoding item array, \(error)")
+            print("Error saving context \(error)")
         }
-        
         
         self.tableView.reloadData()
     }
     
-    func loadItems() {
-        if let data = try? Data(contentsOf: dataFilePath!){
-            let decoder = PropertyListDecoder()
-            do {
-            itemArray =  try decoder.decode([Item].self, from: data)
-                } catch {
-                print("Error decoding item array , \(error)")
-            }
-        }
-    }
+//    func loadItems() {
+//        if let data = try? Data(contentsOf: dataFilePath!){
+//            let decoder = PropertyListDecoder()
+//            do {
+//            itemArray =  try decoder.decode([Item].self, from: data)
+//                } catch {
+//                print("Error decoding item array , \(error)")
+//            }
+//        }
+//    }
 }
