@@ -50,8 +50,11 @@ class TodoListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         //        print(itemArray[indexPath.row])
         
+        // this updates the DONE property
+        
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
+        // after updating the DONE property, you are now commiting the changes by this saveItems() function
         saveItems() // saved to the Encoder Items.plist file
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -72,8 +75,6 @@ class TodoListViewController: UITableViewController {
             self.itemArray.append(newItem)
             self.saveItems() // saved to the Encoder Items.plist file
 
-            
-            
         }
         
         alert.addTextField { (alertTextField) in
