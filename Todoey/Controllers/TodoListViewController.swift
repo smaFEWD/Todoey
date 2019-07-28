@@ -22,8 +22,9 @@ class TodoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-//   this is loading items from pList (3rd) 
-       // loadItems()
+    print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+//   this is loading items from the itemArray
+        loadItems()
         
     }
     
@@ -41,14 +42,7 @@ class TodoListViewController: UITableViewController {
         // value = condition ? valueIfTrue : valueIfFalse
         
         cell.accessoryType = item.done ? .checkmark : .none
-        
-//  before the refactored code above..it was like this
-//        if item.done == true {
-//            cell.accessoryType = .checkmark
-//        } else {
-//            cell.accessoryType = .none
-//        }
-        
+
         return cell
     }
     
@@ -107,14 +101,16 @@ class TodoListViewController: UITableViewController {
         self.tableView.reloadData()
     }
     
-//    func loadItems() {
-//        if let data = try? Data(contentsOf: dataFilePath!){
-//            let decoder = PropertyListDecoder()
-//            do {
-//            itemArray =  try decoder.decode([Item].self, from: data)
-//                } catch {
-//                print("Error decoding item array , \(error)")
-//            }
-//        }
-//    }
+    func loadItems() {
+        // must specify the output as array
+        // broad request, asking for everything back from db
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        do {
+            // then fetching what is stored in the db through our context, and placing it into the itemArray to load up onto the screen
+           itemArray =  try context.fetch(request)
+        } catch {
+            print("Error fetching data from context \(error)")
+        }
+        
+    }
 }
