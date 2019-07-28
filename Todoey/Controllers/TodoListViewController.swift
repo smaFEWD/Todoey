@@ -51,11 +51,16 @@ class TodoListViewController: UITableViewController {
         //        print(itemArray[indexPath.row])
         
         // this updates the DONE property
+        //itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        // this removes an item at a particular index (DELETE) - the order of the 2 lines of code matters
         
+        context.delete(itemArray[indexPath.row]) // removes the item from the context before saving it using saveItems()  -- this part needs to come first before you attempt to remove it from the array
+        
+        itemArray.remove(at: indexPath.row) // removes the item from current array
+
         // after updating the DONE property, you are now commiting the changes by this saveItems() function
-        saveItems() // saved to the Encoder Items.plist file
+        saveItems() // saved to DB (commiting those changes) after it's been placed in context
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
