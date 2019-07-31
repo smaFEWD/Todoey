@@ -13,18 +13,23 @@ class TodoListViewController: UITableViewController {
     
     var itemArray = [Item]() // turning this array into Item() objects that was created in Data Model
     
+    var selectedCategory : Category? {
+        didSet{
+            //this is loading items (only when there is a selected Category, from the itemArray and will load with the default parameter "Item.fetchRequest()" if nothing is specified
+            loadItems()
+        }
+    }
+    
     //creating only a path to the Items.plist - making it a global variable
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist") // b/c it's an array
     
-    // need the object of the AppDelegate
+    // accessing a SINGLETON - UIApplication shared, and accessing it's delegate property, which is AppDelegate, and tapping into it's persistentContainer and viewContext properties
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
     print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
-//   this is loading items from the itemArray and will load with the default parameter "Item.fetchRequest()" if nothign is specified (
-        loadItems()
         
     }
     
@@ -70,6 +75,10 @@ class TodoListViewController: UITableViewController {
             let newItem = Item(context: self.context)
             newItem.title = textField.text!
             newItem.done = false
+            
+            // need this b/c of the new entity/relationship created with Category
+            newItem.parentCategory = self.selectedCategory
+            
             self.itemArray.append(newItem)
             self.saveItems() // saved to the Encoder Items.plist file
 
@@ -100,8 +109,21 @@ class TodoListViewController: UITableViewController {
         self.tableView.reloadData()
     }
     // "with" is a the external paramter and "request" is the internal parameter
-    // we now have set it to a default parameter in case there is nothign specified when calling this function
-    func loadItems(with request : NSFetchRequest<Item> = Item.fetchRequest()) {
+    // we now have set it to a default parameter "Item.fetchRequest()" and also "predicate: NSPredicate? = nil" in case there is nothign specified when calling this function
+    func loadItems(with request : NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil) {
+        // we need to query for the category in order to only load the items in that category
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        if let additionalPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
+        // replace the botom 2 lines of code using optional binding above so we are never unwrapping a nil value
+//        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, predicate])
+//
+//        request.predicate = compoundPredicate
+        
         do {
             // then fetching what is stored in the db through our context, and placing it into the itemArray to load up onto the screen
            itemArray =  try context.fetch(request)
@@ -124,10 +146,10 @@ extension TodoListViewController: UISearchBarDelegate {
         // resources: https://nshipster.com/nspredicate/
         // [cd] makes it diacritic and case insensitive for the query search
         
-        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
         request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        loadItems(with: request)
+        loadItems(with: request, predicate: predicate)
         
     }
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {

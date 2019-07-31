@@ -13,6 +13,7 @@ class CategoryViewController: UITableViewController {
     var categories = [Category]()
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,6 +56,18 @@ class CategoryViewController: UITableViewController {
         tableView.reloadData()
     }
     //MARK: TableView Delegate Methods
+    // this will trigger when we select one of the cells (category) -- and we will want to trigger the segue that takes user from category to items
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "goToItems", sender: self)
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let destinationVC = segue.destination as! TodoListViewController
+        if let indexPath = tableView.indexPathForSelectedRow {
+            // selectedCategory is defined in TodoListViewController, will load up the items for that category when the category cell is selected
+            destinationVC.selectedCategory = categories[indexPath.row]
+        }
+    }
    
 
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
