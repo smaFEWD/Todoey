@@ -12,11 +12,10 @@ import RealmSwift
 class CategoryViewController: UITableViewController {
     let realm = try! Realm() // initializing a new Realm instance
     
-    var categories = [Category]()
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    // Results is an auto-updating container type in Realm returned from object queries, in this case, it contains a bunch of "Category" objects-- this means we don't need to "append" things to it anymore!
+    //by using <Category>! - it force unwraps the Category objects and if it's "nil" it will cause app to crash
     
-    
-
+    var categories: Results<Category>?  // safer by using <Category>? , we make categories an optional
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -25,7 +24,9 @@ class CategoryViewController: UITableViewController {
 
     //MARK: TableView Datasource Methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categories.count
+        
+        // if categoris is NOT nil, then return categories.count, otherwise return "1" -- "??" is called the nil coalescing operator
+        return categories?.count ?? 1
     }
     
     // create a reusable cell and adds it to table at the index path
@@ -33,7 +34,9 @@ class CategoryViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         
         // the "name" attribute was added to the Category Entity, and we need to set the text property of the cell.textLabel
-        cell.textLabel?.text = categories[indexPath.row].name
+        
+        // if the categories[indexPath.row] is not nil, then get the .name property, otherise it's "Not Categories Added Yet"
+        cell.textLabel?.text = categories?[indexPath.row].name ?? "No Categories Added Yet"
         return cell // so that it can be rendered on screen
     }
     
@@ -50,14 +53,10 @@ class CategoryViewController: UITableViewController {
     }
     
     func loadCategories(){
-//        // need to read data from our context
-//        let request : NSFetchRequest<Category> = Category.fetchRequest()
-//        do {
-//            categories = try context.fetch(request)
-//        } catch {
-//            print("Error loading categories \(error)")
-//        }
-//        tableView.reloadData()
+        // this will pull out all of the items inside our Realm that are of Category objects, specifying the Category type is "Category.self"
+        
+        categories = realm.objects(Category.self) // this is of a Realm datatype Results<Category>
+        tableView.reloadData()
     }
     //MARK: TableView Delegate Methods
     // this will trigger when we select one of the cells (category) -- and we will want to trigger the segue that takes user from category to items
@@ -69,7 +68,7 @@ class CategoryViewController: UITableViewController {
         let destinationVC = segue.destination as! TodoListViewController
         if let indexPath = tableView.indexPathForSelectedRow {
             // selectedCategory is defined in TodoListViewController, will load up the items for that category when the category cell is selected
-            destinationVC.selectedCategory = categories[indexPath.row]
+            destinationVC.selectedCategory = categories?[indexPath.row]
         }
     }
    
@@ -81,7 +80,6 @@ class CategoryViewController: UITableViewController {
             // what happens when user clicks the "Add" button
             let newCategory = Category()
             newCategory.name = textField.text!
-            self.categories.append(newCategory)
             
             self.save(category: newCategory)
         }
