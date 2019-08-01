@@ -7,9 +7,11 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
+    let realm = try! Realm() // initializing a new Realm instance
+    
     var categories = [Category]()
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
@@ -36,9 +38,11 @@ class CategoryViewController: UITableViewController {
     }
     
     //MARK: Data Manipulation Methods
-    func saveCategories() {
+    func save(category: Category) {
         do {
-            try context.save()
+            try realm.write{
+                realm.add(category)
+            }
         } catch {
             print("Error saving categories \(error)")
         }
@@ -46,14 +50,14 @@ class CategoryViewController: UITableViewController {
     }
     
     func loadCategories(){
-        // need to read data from our context
-        let request : NSFetchRequest<Category> = Category.fetchRequest()
-        do {
-            categories = try context.fetch(request)
-        } catch {
-            print("Error loading categories \(error)")
-        }
-        tableView.reloadData()
+//        // need to read data from our context
+//        let request : NSFetchRequest<Category> = Category.fetchRequest()
+//        do {
+//            categories = try context.fetch(request)
+//        } catch {
+//            print("Error loading categories \(error)")
+//        }
+//        tableView.reloadData()
     }
     //MARK: TableView Delegate Methods
     // this will trigger when we select one of the cells (category) -- and we will want to trigger the segue that takes user from category to items
@@ -75,11 +79,11 @@ class CategoryViewController: UITableViewController {
         let alert = UIAlertController(title: "Add New Category", message: "", preferredStyle: .alert)
         let action = UIAlertAction(title: "Add", style: .default){(action) in
             // what happens when user clicks the "Add" button
-            let newCategory = Category(context: self.context)
+            let newCategory = Category()
             newCategory.name = textField.text!
             self.categories.append(newCategory)
             
-            self.saveCategories()
+            self.save(category: newCategory)
         }
         
         alert.addAction(action)

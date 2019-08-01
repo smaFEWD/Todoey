@@ -23,17 +23,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         print(Realm.Configuration.defaultConfiguration.fileURL)
         
-        let data = Data()
-        data.name = "Sandi"
-        data.age = 28
-        
+
+        // initializing our Realm DB
         do {
             let realm = try Realm()
-            try realm.write { //writing to the db
-                realm.add(data)
-            }
         } catch {
-            print("Error initialising new realm, \(error)")
+            print("Error initializing new realm, (error)")
         }
         return true
     }
@@ -42,7 +37,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
         // Saves changes in the application's managed object context before the application terminates.
-        self.saveContext()
+//        self.saveContext()
     }
     
     // MARK: - Core Data stack
@@ -76,6 +71,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
 
-
 }
+
 

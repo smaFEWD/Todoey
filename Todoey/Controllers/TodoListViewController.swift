@@ -7,7 +7,8 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
+
 
 class TodoListViewController: UITableViewController {
     
@@ -16,7 +17,7 @@ class TodoListViewController: UITableViewController {
     var selectedCategory : Category? {
         didSet{
             //this is loading items (only when there is a selected Category, from the itemArray and will load with the default parameter "Item.fetchRequest()" if nothing is specified
-            loadItems()
+            //loadItems()
         }
     }
     
@@ -72,14 +73,14 @@ class TodoListViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default){(action) in
             // what will happen once the user clicks the Add Item button on our UIAlert
             
-            let newItem = Item(context: self.context)
-            newItem.title = textField.text!
-            newItem.done = false
-            
-            // need this b/c of the new entity/relationship created with Category
-            newItem.parentCategory = self.selectedCategory
-            
-            self.itemArray.append(newItem)
+//            let newItem = Item(context: self.context)
+//            newItem.title = textField.text!
+//            newItem.done = false
+//
+//            // need this b/c of the new entity/relationship created with Category
+//            newItem.parentCategory = self.selectedCategory
+//
+//            self.itemArray.append(newItem)
             self.saveItems() // saved to the Encoder Items.plist file
 
         }
@@ -110,61 +111,61 @@ class TodoListViewController: UITableViewController {
     }
     // "with" is a the external paramter and "request" is the internal parameter
     // we now have set it to a default parameter "Item.fetchRequest()" and also "predicate: NSPredicate? = nil" in case there is nothign specified when calling this function
-    func loadItems(with request : NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil) {
-        // we need to query for the category in order to only load the items in that category
-        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
-        
-        if let additionalPredicate = predicate {
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
-        } else {
-            request.predicate = categoryPredicate
-        }
-        // replace the botom 2 lines of code using optional binding above so we are never unwrapping a nil value
-//        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, predicate])
+//    func loadItems(with request : NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil) {
+//        // we need to query for the category in order to only load the items in that category
+//        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
 //
-//        request.predicate = compoundPredicate
-        
-        do {
-            // then fetching what is stored in the db through our context, and placing it into the itemArray to load up onto the screen
-           itemArray =  try context.fetch(request)
-        } catch {
-            print("Error fetching data from context \(error)")
-        }
-        tableView.reloadData()
-    }
+//        if let additionalPredicate = predicate {
+//            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
+//        } else {
+//            request.predicate = categoryPredicate
+//        }
+//        // replace the botom 2 lines of code using optional binding above so we are never unwrapping a nil value
+////        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, predicate])
+////
+////        request.predicate = compoundPredicate
+//
+//        do {
+//            // then fetching what is stored in the db through our context, and placing it into the itemArray to load up onto the screen
+//           itemArray =  try context.fetch(request)
+//        } catch {
+//            print("Error fetching data from context \(error)")
+//        }
+//        tableView.reloadData()
+//    }
 }
 // MARK: Search Bar Methods
-extension TodoListViewController: UISearchBarDelegate {
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        // read from context
-        let request : NSFetchRequest<Item> = Item.fetchRequest()
-        
-//        print(searchBar.text!)
-        
-        //to query CoreData, we need to use NSPredicate- which is a query language
-        // resources: https://academy.realm.io/posts/nspredicate-cheatsheet/
-        // resources: https://nshipster.com/nspredicate/
-        // [cd] makes it diacritic and case insensitive for the query search
-        
-        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-        
-        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        loadItems(with: request, predicate: predicate)
-        
-    }
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchBar.text?.count == 0 {
-            // this has a default request that will fetch ALL items from the items stored
-            loadItems()
-            
-            // dispatchQueue manages the distribution of items, prioritizing which items needs to be processed- and assigns the different projects to diff threads- so we are asking it to get the main thread
-            // which makes the keyboard disappear and the cursor will go away from the search input field
-            DispatchQueue.main.async {
-                // tell the searchBar to stop being the 'first responder', means no longer have the cursor - no longer actively waiting for user to enter search
-                searchBar.resignFirstResponder()
-                
-            }
-            
-        }
-    }
-}
+//extension TodoListViewController: UISearchBarDelegate {
+//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+//        // read from context
+//        let request : NSFetchRequest<Item> = Item.fetchRequest()
+//
+////        print(searchBar.text!)
+//
+//        //to query CoreData, we need to use NSPredicate- which is a query language
+//        // resources: https://academy.realm.io/posts/nspredicate-cheatsheet/
+//        // resources: https://nshipster.com/nspredicate/
+//        // [cd] makes it diacritic and case insensitive for the query search
+//
+//        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+//
+//        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+//        loadItems(with: request, predicate: predicate)
+//
+//    }
+//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+//        if searchBar.text?.count == 0 {
+//            // this has a default request that will fetch ALL items from the items stored
+//            loadItems()
+//
+//            // dispatchQueue manages the distribution of items, prioritizing which items needs to be processed- and assigns the different projects to diff threads- so we are asking it to get the main thread
+//            // which makes the keyboard disappear and the cursor will go away from the search input field
+//            DispatchQueue.main.async {
+//                // tell the searchBar to stop being the 'first responder', means no longer have the cursor - no longer actively waiting for user to enter search
+//                searchBar.resignFirstResponder()
+//
+//            }
+//
+//        }
+//    }
+//}
