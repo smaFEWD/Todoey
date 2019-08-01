@@ -65,8 +65,8 @@ class TodoListViewController: UITableViewController {
         if let item = todoItems?[indexPath.row] {
             do {
                 try realm.write {
-                    realm.delete(item)
-//                    item.done = !item.done
+//                    realm.delete(item) - prefer to NOT delete but instead use the checkmark below for done
+                    item.done = !item.done
                 }
             }
             catch
@@ -125,41 +125,27 @@ class TodoListViewController: UITableViewController {
         
         tableView.reloadData()
     }
-
+}
 
 
 // MARK: Search Bar Methods
-//extension TodoListViewController: UISearchBarDelegate {
-//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//        // read from context
-//        let request : NSFetchRequest<Item> = Item.fetchRequest()
-//
-////        print(searchBar.text!)
-//
-//        //to query CoreData, we need to use NSPredicate- which is a query language
-//        // resources: https://academy.realm.io/posts/nspredicate-cheatsheet/
-//        // resources: https://nshipster.com/nspredicate/
-//        // [cd] makes it diacritic and case insensitive for the query search
-//
-//        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-//
-//        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-//        loadItems(with: request, predicate: predicate)
-//
-//    }
-//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-//        if searchBar.text?.count == 0 {
-//            // this has a default request that will fetch ALL items from the items stored
-//            loadItems()
-//
-//            // dispatchQueue manages the distribution of items, prioritizing which items needs to be processed- and assigns the different projects to diff threads- so we are asking it to get the main thread
-//            // which makes the keyboard disappear and the cursor will go away from the search input field
-//            DispatchQueue.main.async {
-//                // tell the searchBar to stop being the 'first responder', means no longer have the cursor - no longer actively waiting for user to enter search
-//                searchBar.resignFirstResponder()
-//
-//            }
-//
-//        }
-//    }
+extension TodoListViewController: UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        todoItems = todoItems?.filter("title CONTAINS[cd] %@", searchBar.text).sorted(byKeyPath: "title", ascending: true)
+    }
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            // this has a default request that will fetch ALL items from the items stored
+            loadItems()
+
+            // dispatchQueue manages the distribution of items, prioritizing which items needs to be processed- and assigns the different projects to diff threads- so we are asking it to get the main thread
+            // which makes the keyboard disappear and the cursor will go away from the search input field
+            DispatchQueue.main.async {
+                // tell the searchBar to stop being the 'first responder', means no longer have the cursor - no longer actively waiting for user to enter search
+                searchBar.resignFirstResponder()
+
+            }
+
+        }
+    }
 }
