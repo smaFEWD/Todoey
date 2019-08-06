@@ -17,6 +17,8 @@ class TodoListViewController: SwipeTableViewController {
     
     var realm = try! Realm()
     
+    @IBOutlet weak var searchBar: UISearchBar!
+    
     var selectedCategory : Category? {
         didSet{
             //this is loading items (only when there is a selected Category)
@@ -32,9 +34,35 @@ class TodoListViewController: SwipeTableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
-    print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        
         tableView.separatorStyle = .none
+        
+   }
+    
+// viewWillAppear gets called after viewDidLoad -- so moving the code down here makes more sense b/c we can see that the navigationController is actually still 'nil' when viewDidLoad was called- this runs AFTER the navigation stack has been established.- moving the code to a diff lifecycle time point
+    override func viewWillAppear(_ animated: Bool) {
+        title = selectedCategory?.name
+        guard let colorHex = selectedCategory?.color else {fatalError()}
+        updateNavBar(withHexCode: colorHex)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        updateNavBar(withHexCode: "B454FF")
+    }
+    
+    // MARK - Nav Bar Setup Methods
+    func updateNavBar(withHexCode colorHexCode: String){
+        //    if colorHex is not nil, then execute the code
+    
+        guard let navBar = navigationController?.navigationBar else {fatalError("Navigation Controller does not exist")}
+        
+        guard let navBarColor = UIColor(hexString: colorHexCode) else {fatalError()}
+        
+        navBar.barTintColor = navBarColor
+        navBar.tintColor = ContrastColorOf(navBarColor, returnFlat: true)
+        navBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor : ContrastColorOf(navBarColor, returnFlat: true)]
+        searchBar.barTintColor = navBarColor
+
     }
     
     // MARK - TableView Datasource Methods
